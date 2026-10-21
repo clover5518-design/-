@@ -1,0 +1,6 @@
+{
+  "name": "云语悦读 - 智能双语朗读电子书",
+  "description": "专为手机打造的智能电子书阅读器，支持 PDF 与 EPUB 导入，提供高质量英文译中文及中英双语语音同步朗读。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
