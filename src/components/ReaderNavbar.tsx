@@ -91,20 +91,19 @@ export const ReaderNavbar: React.FC<ReaderNavbarProps> = ({
           {!isChineseBook && (
             <button
               onClick={onTranslateChapter}
-              disabled={isTranslatingChapter}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition shadow-sm ${
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition shadow-sm cursor-pointer ${
                 isTranslatingChapter
-                  ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 animate-pulse'
+                  ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40'
                   : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30'
               }`}
-              title="整章极速翻译（调用安卓16/三星S24端侧系统翻译）"
+              title={isTranslatingChapter ? "点击暂停翻译（已翻译段落全部永久保留）" : "整章极速翻译（支持后台不中断与实时逐段呈现）"}
             >
-              <Sparkles className={`w-3.5 h-3.5 text-amber-400 ${isTranslatingChapter ? 'animate-spin' : ''}`} />
+              <Sparkles className={`w-3.5 h-3.5 ${isTranslatingChapter ? 'animate-spin text-rose-400' : 'text-amber-400'}`} />
               <span className="font-semibold">
                 {isTranslatingChapter
                   ? translateProgress
-                    ? `${Math.round((translateProgress.done / (translateProgress.total || 1)) * 100)}%`
-                    : '翻译中'
+                    ? `⏸ 暂停 ${Math.round((translateProgress.done / (translateProgress.total || 1)) * 100)}%`
+                    : '⏸ 暂停'
                   : '整章翻译'}
               </span>
             </button>

@@ -2,12 +2,281 @@ import { Book } from '../types/book';
 
 export const SAMPLE_BOOKS: Book[] = [
   {
+    id: 'book_broken_china',
+    title: 'Broken China',
+    author: 'Logan Wright',
+    format: 'epub',
+    coverUrl: '/covers/broken_china.jpg',
+    createdAt: 1700000000000,
+    lastReadAt: Date.now(),
+    currentChapterIndex: 0,
+    currentParagraphIndex: 0,
+    chapters: [
+      {
+        id: 'bc-chap-1',
+        title: 'Chapter 1: The Anatomy of a Slowdown (经济放缓的解构)',
+        paragraphs: [
+          {
+            id: 'bc-1',
+            original: 'For four decades, China’s economic ascent appeared almost unstoppable, defying conventional economic theory and global skepticism.',
+            translation: '四十年来，中国的经济崛起似乎势不可挡，打破了传统经济学理论和全球质疑。',
+          },
+          {
+            id: 'bc-2',
+            original: 'Yet beneath the gleaming skylines and high-speed rail networks, structural imbalances were silently compounding across the financial system.',
+            translation: '然而，在璀璨的天际线和高速铁路网络之下，金融体系内部的结构性失衡却在悄然累积。',
+          },
+          {
+            id: 'bc-3',
+            original: 'The core engine of this rapid expansion was property-driven investment financed by unprecedented local government debt mechanisms.',
+            translation: '这一高速扩张的核心引擎是以房地产为主导的投资模式，其背后由前所未见的地方政府债务机制提供资金支撑。',
+          },
+          {
+            id: 'bc-4',
+            original: 'When demographic shifts and regulatory tightening cooled the property market, the multiplier effect reversed with alarming velocity.',
+            translation: '当人口结构变化和监管收紧为房地产市场降温时，乘数效应以令人警惕的速度发生了反向运转。',
+          },
+          {
+            id: 'bc-5',
+            original: 'Understanding this transformation is crucial not only for analysts of Beijing, but for every participant in the interconnected global economy.',
+            translation: '深刻理解这一转变，不仅对于研究北京的学者至关重要，对互联互通的全球经济中的每一位参与者亦是如此。',
+          },
+        ],
+      },
+      {
+        id: 'bc-chap-2',
+        title: 'Chapter 2: The Path Forward (未来的破局之路)',
+        paragraphs: [
+          {
+            id: 'bc-2-1',
+            original: 'Transitioning from debt-fueled investment toward domestic consumption requires fundamental reforms in social safety nets and fiscal distribution.',
+            translation: '从依赖债务驱动的投资转向以国内消费为主导，需要对社会保障网络和财政分配体系进行深层次改革。',
+          },
+          {
+            id: 'bc-2-2',
+            original: 'High-tech manufacturing and green energy present immense opportunities, yet their sheer scale cannot immediately replace the real estate engine.',
+            translation: '高端制造与绿色能源蕴藏着巨大的发展机遇，然而其目前的体量尚无法立刻完全替代庞大的房地产引擎。',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'book_industry_research',
+    title: '如何快速了解一个行业',
+    author: '麦肯锡前分析师',
+    format: 'pdf',
+    coverUrl: '/covers/industry_research.jpg',
+    createdAt: 1700000001000,
+    lastReadAt: Date.now() - 1800000,
+    currentChapterIndex: 0,
+    currentParagraphIndex: 0,
+    chapters: [
+      {
+        id: 'ir-chap-1',
+        title: '第1章：三步搭建行业全景认知框架',
+        paragraphs: [
+          {
+            id: 'ir-1',
+            original: '在商业世界中，快速看懂一个陌生行业不是依靠死记硬背数据，而是建立一套结构化的心智模型。',
+          },
+          {
+            id: 'ir-2',
+            original: '第一步是绘制产业链全景图：梳理上游原材料与供应商、中游生产制造与集成商、下游销售渠道与终端客户。',
+          },
+          {
+            id: 'ir-3',
+            original: '第二步是厘清行业的核心商业逻辑：谁在赚取最高利润率？哪一个环节拥有最高的定价权和转换壁垒？',
+          },
+          {
+            id: 'ir-4',
+            original: '第三步是追踪驱动行业演进的关键变量：包括宏观政策规制、核心技术迭代周期，以及终端消费者的行为变迁。',
+          },
+          {
+            id: 'ir-5',
+            original: '掌握了这三步方法论，哪怕面对一个完全陌生的领域，也能在48小时内抓住其命脉，并做出高胜率的商业判断。',
+          },
+        ],
+      },
+      {
+        id: 'ir-chap-2',
+        title: '第2章：拆解标杆企业的护城河',
+        paragraphs: [
+          {
+            id: 'ir-2-1',
+            original: '观察行业龙头的财务报表，重点看毛利率水平与研发投入占比，这是透视其竞争壁垒真伪的试金石。',
+          },
+          {
+            id: 'ir-2-2',
+            original: '网络效应、规模经济、专利与品牌溢价，这四种经典的护城河在数字经济时代正在被重新定义。',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'book_psychology',
+    title: '津巴多普通心理学',
+    author: '菲利普·津巴多',
+    format: 'epub',
+    coverUrl: '/covers/psychology.jpg',
+    createdAt: 1700000002000,
+    lastReadAt: Date.now() - 3600000,
+    currentChapterIndex: 0,
+    currentParagraphIndex: 0,
+    chapters: [
+      {
+        id: 'psy-chap-1',
+        title: '第1章：心灵、行为与心理科学',
+        paragraphs: [
+          {
+            id: 'psy-1',
+            original: 'Psychology is broadly defined as the scientific study of behavior and mental processes in all their diverse forms.',
+            translation: '心理学被广泛定义为对各种形式的行为与心理过程进行严谨实证研究的科学。',
+          },
+          {
+            id: 'psy-2',
+            original: 'Modern psychologists pursue four primary goals: to describe what happens, to explain why it happens, to predict what will happen next, and to control or improve behavior.',
+            translation: '现代心理学追求四大主要目标：描述发生了什么、解释为何发生、预测接下来会发生什么，以及控制或改善人类行为。',
+          },
+          {
+            id: 'psy-3',
+            original: 'Critical thinking is the lifeblood of psychological science—asking what the claim is, who is making it, and what empirical evidence supports it.',
+            translation: '批判性思维是心理科学的生命线——始终追问主张是什么、由谁提出，以及有哪些实证数据作为支撑。',
+          },
+          {
+            id: 'psy-4',
+            original: 'Our thoughts, emotions, and decisions are constantly shaped by both biological inheritance and dynamic cultural environments.',
+            translation: '我们的思想、情绪和决策，始终在生物基因遗传与动态文化环境的共同作用下被持续塑造。',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'book_dynamic_hedging',
+    title: 'Dynamic Hedging',
+    author: 'Nassim Taleb',
+    format: 'pdf',
+    coverUrl: '/covers/dynamic_hedging.jpg',
+    createdAt: 1700000003000,
+    lastReadAt: Date.now() - 7200000,
+    currentChapterIndex: 0,
+    currentParagraphIndex: 0,
+    chapters: [
+      {
+        id: 'dh-chap-1',
+        title: 'Chapter 1: Managing Vanilla and Exotic Options (动态对冲的核心原则)',
+        paragraphs: [
+          {
+            id: 'dh-1',
+            original: 'Dynamic hedging is the art and science of continually adjusting the hedge of a derivative portfolio as market prices and volatility fluctuate.',
+            translation: '动态对冲是一门艺术与科学，它要求随着市场价格和波动率的波动，持续且动态地调整衍生品投资组合的对冲头寸。',
+          },
+          {
+            id: 'dh-2',
+            original: 'Theoretical option models assume frictionless continuous trading, but real market practitioners face liquidity black holes and transaction costs.',
+            translation: '期权理论模型通常假设无摩擦的连续交易，但在现实市场中，交易员必须直面流动性黑洞与高昂的交易冲击成本。',
+          },
+          {
+            id: 'dh-3',
+            original: 'The volatility surface is not a flat plane; skewness and fat-tailed jumps govern the real survival probability of any options book.',
+            translation: '波动率曲面绝非平坦的平面；偏度与肥尾跳跃实际上主宰着任何期权头寸的生死存亡概率。',
+          },
+          {
+            id: 'dh-4',
+            original: 'Delta neutrality alone cannot protect a portfolio against catastrophic gamma expansion during sudden regime changes.',
+            translation: '在突发性的市场机制转换期间，单纯的 Delta 中性无法抵御巨额 Gamma 膨胀所带来的灾难性穿仓风险。',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'book_to_sell_is_human',
+    title: 'To Sell is Human',
+    author: 'Daniel H. Pink',
+    format: 'epub',
+    coverUrl: '/covers/to_sell_is_human.jpg',
+    createdAt: 1700000004000,
+    lastReadAt: Date.now() - 10800000,
+    currentChapterIndex: 0,
+    currentParagraphIndex: 0,
+    chapters: [
+      {
+        id: 'sh-chap-1',
+        title: 'Chapter 1: We\'re All in Sales Now (人人都离不开销售)',
+        paragraphs: [
+          {
+            id: 'sh-1',
+            original: 'One in nine American workers earns a living directly in sales. But the remaining eight in nine are engaged in "non-sales selling"—moving others to give up resources in exchange for what we offer.',
+            translation: '每九个美国工作者中，就有一个直接从事销售职业。而其余的八个人，实际上也都在从事“非销售型销售”——打动他人付出资源以换取我们的提议。',
+          },
+          {
+            id: 'sh-2',
+            original: 'The traditional condition of sales was information asymmetry: the seller always held the advantage, summed up by the Latin maxim "caveat emptor" (buyer beware).',
+            translation: '传统销售的基本前提是信息不对称：卖方永远占据优势，其典型体现就是拉丁谚语“买家自负其责”（买方警惕）。',
+          },
+          {
+            id: 'sh-3',
+            original: 'Today, the smartphone has flipped that equation into information parity. The new watchword is "caveat venditor"—seller beware.',
+            translation: '如今，智能手机将这一天平逆转为信息对称。全新的市场警语变成了“买家当心变成卖家自省”（卖家警惕）。',
+          },
+          {
+            id: 'sh-4',
+            original: 'To move people in this transparent world requires three renewed human capabilities: Attunement, Buoyancy, and Clarity.',
+            translation: '在这个信息透明的新世界里，打动他人需要三项焕然一新的人性能力：同理共鸣、浮力心态与洞察清晰度。',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'book_fourth_turning',
+    title: 'The Fourth Turning',
+    author: 'William Strauss & Neil Howe',
+    format: 'epub',
+    coverUrl: '/covers/fourth_turning.jpg',
+    createdAt: 1700000005000,
+    lastReadAt: Date.now() - 14400000,
+    currentChapterIndex: 0,
+    currentParagraphIndex: 0,
+    chapters: [
+      {
+        id: 'ft-chap-1',
+        title: 'Chapter 1: The Cycles of American History (美洲历史的长周期循环)',
+        paragraphs: [
+          {
+            id: 'ft-1',
+            original: 'History is seasonal, and every season lasts roughly the length of a human life—about eighty to one hundred years.',
+            translation: '历史如同四季更迭，每一个大周期（长纪，saeculum）的跨度大致相当于人类的一生——约八十至一百年。',
+          },
+          {
+            id: 'ft-2',
+            original: 'Each saeculum comprises four turnings: The High, The Awakening, The Unraveling, and The Fourth Turning—The Crisis.',
+            translation: '每个长纪包含四个转折期：高潮期、觉醒期、解体期，以及第四个转折——决定命运的大危机期。',
+          },
+          {
+            id: 'ft-3',
+            original: 'During a Crisis, an unexpected spark ignites a chain reaction that tears down decayed institutional orders and demands a total civic reconstruction.',
+            translation: '在危机期中，一个意料之外的火星就会点燃连锁反应，瓦解腐朽的旧体制秩序，并迫使整个社会进行彻底的公民重建。',
+          },
+          {
+            id: 'ft-4',
+            original: 'As generations replace one another, archetypes shift, carrying society inexorably through triumph, complacency, conflict, and renewal.',
+            translation: '随着世代交替，代际原型不断演变，不可阻挡地带领着社会历经胜利辉煌、麻痹自满、解构纷争以及破茧新生。',
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: 'sample_little_prince',
     title: 'The Little Prince (小王子)',
     author: 'Antoine de Saint-Exupéry',
     format: 'epub',
-    createdAt: 1700000000000,
-    lastReadAt: Date.now(),
+    createdAt: 1700000006000,
+    lastReadAt: Date.now() - 20000000,
     currentChapterIndex: 0,
     currentParagraphIndex: 0,
     chapters: [
@@ -66,11 +335,6 @@ export const SAMPLE_BOOKS: Book[] = [
             translation: '“这是人们经常忽视的一件事，”狐狸说，“它的意思是‘建立羁绊’。”',
           },
           {
-            id: 'lp-11',
-            original: '"To establish ties?"',
-            translation: '“建立羁绊？”',
-          },
-          {
             id: 'lp-12',
             original: '"Just that," said the fox. "To me, you are still nothing more than a little boy who is just like a hundred thousand other little boys. And I have no need of you. And you, on your part, have no need of me. To you, I am nothing more than a fox like a hundred thousand other foxes. But if you tame me, then we shall need each other. To me, you will be unique in all the world. To you, I shall be unique in all the world..."',
             translation: '“正是如此，”狐狸说，“对我而言，你还只是一个小男孩，和千千万万个小男孩没什么两样。我不需要你，你也同样不需要我。对你来说，我也只是一只狐狸，和千千万万只狐狸没有分别。但是，如果你驯化了我，我们就会彼此需要。对我来说，你将是世界上独一无二的；对你来说，我也将是世界上独一无二的……”',
@@ -84,128 +348,6 @@ export const SAMPLE_BOOKS: Book[] = [
             id: 'lp-14',
             original: '"It is the time you have wasted for your rose that makes your rose so important."',
             translation: '“正是你为你的玫瑰倾注的时间，才让你的玫瑰变得如此重要。”',
-          },
-        ],
-      },
-      {
-        id: 'chap-lp-2',
-        title: 'Chapter 1: The Boa Constrictor (巨蟒与画)',
-        paragraphs: [
-          {
-            id: 'lp-2-1',
-            original: 'Once when I was six years old I saw a magnificent picture in a book, called True Stories from Nature, about the primeval forest.',
-            translation: '六岁那年，我在一本描写原始森林的名叫《真实的故事》的书中，看到了一幅极其壮丽的插图。',
-          },
-          {
-            id: 'lp-2-2',
-            original: 'It was a picture of a boa constrictor in the act of swallowing an animal. Here is a copy of the drawing.',
-            translation: '那是一幅巨蟒正在吞食野兽的画。这就是那幅画的摹本。',
-          },
-          {
-            id: 'lp-2-3',
-            original: 'In the book it said: "Boa constrictors swallow their prey whole, without chewing it. After that they are not able to move, and they sleep through the six months that they need for digestion."',
-            translation: '书中写道：“巨蟒把猎物整个吞下去，嚼都不嚼。之后它们便无法动弹，要沉睡整整六个月来消化食物。”',
-          },
-          {
-            id: 'lp-2-4',
-            original: 'I pondered deeply, then, over the adventures of the jungle. And after some work with a colored pencil I succeeded in making my first drawing. My Drawing Number One.',
-            translation: '当时我对丛林中的冒险沉思良久。用彩色铅笔涂抹了一番之后，我成功完成了自己的第一幅画作。我的第一号画作。',
-          },
-          {
-            id: 'lp-2-5',
-            original: 'I showed my masterpiece to the grown-ups, and asked them whether the drawing frightened them. But they answered: "Frighten? Why should any one be frightened by a hat?"',
-            translation: '我把这幅杰作拿给大人们看，问他们这幅画是否吓到了他们。但他们回答：“害怕？一顶帽子有什么好怕的？”',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'sample_alice_wonderland',
-    title: 'Alice in Wonderland (爱丽丝梦游仙境)',
-    author: 'Lewis Carroll',
-    format: 'epub',
-    createdAt: 1700000001000,
-    lastReadAt: Date.now() - 3600000,
-    currentChapterIndex: 0,
-    currentParagraphIndex: 0,
-    chapters: [
-      {
-        id: 'chap-alice-1',
-        title: 'Chapter I: Down the Rabbit-Hole (掉进兔子洞)',
-        paragraphs: [
-          {
-            id: 'alice-1',
-            original: 'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do.',
-            translation: '爱丽丝坐在河岸边姐姐的身旁，无所事事，渐渐感到厌倦极了。',
-          },
-          {
-            id: 'alice-2',
-            original: 'Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, "and what is the use of a book," thought Alice "without pictures or conversation?"',
-            translation: '她曾有一两回偷偷瞧了瞧姐姐正在读的那本书，可书里既没有图画也没有对话。“一本既没有插图又没有对话的书，”爱丽丝心想，“能有什么意思呢？”',
-          },
-          {
-            id: 'alice-3',
-            original: 'So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.',
-            translation: '于是她心里暗自琢磨（天气热得她昏昏欲睡、脑子转得极慢）：编雏菊项圈的乐趣，是否值得她费力爬起来去采摘雏菊呢？就在这时，一只红眼睛的白兔突然从她身旁飞奔而过。',
-          },
-          {
-            id: 'alice-4',
-            original: 'There was nothing so VERY remarkable in that; nor did Alice think it so VERY much out of the way to hear the Rabbit say to itself, "Oh dear! Oh dear! I shall be late!"',
-            translation: '这本算不上什么特别稀奇的事；甚至当爱丽丝听到兔子自言自语说“天哪！天哪！我要迟到了！”时，她也没觉得有多么离谱。',
-          },
-          {
-            id: 'alice-5',
-            original: 'But when the Rabbit actually TOOK A WATCH OUT OF ITS WAISTCOAT-POCKET, and looked at it, and then hurried on, Alice started to her feet, for it flashed across her mind that she had never before seen a rabbit with either a waistcoat-pocket, or a watch to take out of it.',
-            translation: '可是，当那只兔子真的从马甲口袋里掏出一块怀表看了看，然后急匆匆地继续往前赶时，爱丽丝猛地跳了起来——因为她脑海里灵光一闪：她以前可从来没见过哪只兔子穿着带口袋的马甲，更别说还能从中掏出一块怀表了！',
-          },
-          {
-            id: 'alice-6',
-            original: 'Burning with curiosity, she ran across the field after it, and fortunately was just in time to see it pop down a large rabbit-hole under the hedge.',
-            translation: '怀着强烈的好奇心，她飞奔穿过田野追赶它，幸运的是，她刚好来得及看见它钻进了树篱下一个大大的兔子洞。',
-          },
-          {
-            id: 'alice-7',
-            original: 'In another moment down went Alice after it, never once considering how in the world she was to get out again.',
-            translation: '转瞬之间，爱丽丝也跟着一头跳了下去，压根儿没考虑过到底该怎么再爬出来。',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'sample_chinese_luxun',
-    title: '从百草园到三味书屋',
-    author: '鲁迅',
-    format: 'epub',
-    createdAt: 1700000002000,
-    lastReadAt: Date.now() - 7200000,
-    currentChapterIndex: 0,
-    currentParagraphIndex: 0,
-    chapters: [
-      {
-        id: 'chap-luxun-1',
-        title: '朝花夕拾：百草园的童年',
-        paragraphs: [
-          {
-            id: 'lx-1',
-            original: '我家的后面有一个很大的园，相传叫作百草园。现在是早已并屋子一起卖给朱姓的子孙了，连那最末次的相见也已经隔了七八年，其中似乎确凿只有一些野草；但那时却是我的乐园。',
-          },
-          {
-            id: 'lx-2',
-            original: '不必说碧绿的菜畦，光滑的石井栏，高大的皂荚树，紫红的桑椹；也不必说鸣蝉在树叶里长吟，肥胖的黄蜂伏在菜花上，轻捷的叫天子忽然从草间直窜向云霄里去了。',
-          },
-          {
-            id: 'lx-3',
-            original: '单是周围的短短的泥墙根一带，就有无限趣味。油蛉在这里低唱，蟋蟀们在这里弹琴。翻开断砖来，有时会遇见蜈蚣；还有斑蝥，倘若用手指按住它的脊梁，便会啪的一声，从后窍喷出一阵烟雾。',
-          },
-          {
-            id: 'lx-4',
-            original: '何首乌藤和木莲藤缠络着，木莲有莲房一般的果实，何首乌有臃肿的根。有人说，何首乌根是有像人形的，吃了便可以成仙，我于是常常拔它起来，牵连不断地拔起来，也曾因此弄坏了泥墙，却从来没有见过有一块根像人样。',
-          },
-          {
-            id: 'lx-5',
-            original: '冬天的百草园比较的无味；雪一下，可就两样了。拍雪人和塑雪罗汉需要人们鉴赏，这是荒园，人迹罕至，所以不相宜，只好来捕鸟。薄薄的雪是不行的；总须积雪盖了地面一两天，鸟雀们久已无处觅食的时候才好。扫开一块雪，露出地面，用一枝短棒支起一面大的竹筛来，下面撒些秕谷，棒上系一条长绳，人远远地牵着，看鸟雀下来啄食，走到竹筛底下的时候，将绳子一拉，便罩住了。',
           },
         ],
       },

@@ -17,8 +17,26 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+    </noscript>
     <meta name="twitter:card" content="summary_large_image" />
+  <script>
+      // Gracefully suppress non-fatal Vite dev WebSocket / HMR disconnect logs
+      window.addEventListener("error", function(e) {
+        if (e && (e.message?.includes("WebSocket") || e.filename?.includes("@vite/client"))) {
+          e.stopImmediatePropagation?.();
+          e.preventDefault?.();
+        }
+      }, true);
+      window.addEventListener("unhandledrejection", function(e) {
+        if (e && (e.reason?.message?.includes("WebSocket") || String(e.reason?.stack || "").includes("@vite/client"))) {
+          e.stopImmediatePropagation?.();
+          e.preventDefault?.();
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>

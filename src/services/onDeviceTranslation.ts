@@ -132,7 +132,7 @@ class OnDeviceTranslationManager {
     if (win.SamsungGalaxyAI && typeof win.SamsungGalaxyAI.translate === 'function') {
       try {
         const res = await win.SamsungGalaxyAI.translate(clean, 'en', 'zh');
-        if (res) return { translation: res, source: 'samsung_galaxy_ai' };
+        if (res && /[\u4e00-\u9fa5]/.test(res)) return { translation: res, source: 'samsung_galaxy_ai' };
       } catch (err) {
         console.warn('Samsung Galaxy AI translate error:', err);
       }
@@ -141,7 +141,7 @@ class OnDeviceTranslationManager {
     if (win.AndroidBridge && typeof win.AndroidBridge.translate === 'function') {
       try {
         const res = await win.AndroidBridge.translate(clean, 'en', 'zh');
-        if (res) return { translation: res, source: 'android_system' };
+        if (res && /[\u4e00-\u9fa5]/.test(res)) return { translation: res, source: 'android_system' };
       } catch (err) {
         console.warn('AndroidBridge translate error:', err);
       }
@@ -152,7 +152,7 @@ class OnDeviceTranslationManager {
       const translator = await this.getTranslator();
       if (translator && typeof translator.translate === 'function') {
         const res = await translator.translate(clean);
-        if (res && typeof res === 'string') {
+        if (res && typeof res === 'string' && /[\u4e00-\u9fa5]/.test(res)) {
           return { translation: res, source: 'android_ondevice' };
         }
       }
@@ -160,16 +160,65 @@ class OnDeviceTranslationManager {
       console.warn('On-device translation call failed, falling back:', err);
     }
 
-    // 3. Ultra-fast Cloud Fallback: calls server /api/translate
-    const response = await fetch('/api/translate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: clean }),
-    });
+    // 3. If running on HTTP/HTTPS web server, try server /api/translate
+    if (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: clean }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
 
-    if (!response.ok) throw new Error('Translation failed');
-    const data = await response.json();
-    return { translation: data.translation || clean, source: data.source || 'gemini' };
+        if (response.ok) {
+          const data = await response.json();
+          if (data.translation && /[\u4e00-\u9fa5]/.test(data.translation)) {
+            return { translation: data.translation, source: data.source || 'gemini' };
+          }
+        }
+      } catch (srvErr) {
+        console.warn('Server /api/translate call timed out or failed, falling back to direct client API:', srvErr);
+      }
+    }
+
+    // 4. Direct Client Google GTX Translation (works in Android APK & browser without local server)
+    try {
+      const gtxRes = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(clean)}`
+      );
+      if (gtxRes.ok) {
+        const gtxData = await gtxRes.json();
+        if (Array.isArray(gtxData) && Array.isArray(gtxData[0])) {
+          const trans = gtxData[0].map((item: any) => item[0]).join('').trim();
+          if (trans && /[\u4e00-\u9fa5]/.test(trans)) {
+            return { translation: trans, source: 'google_gtx_client' };
+          }
+        }
+      }
+    } catch (gtxErr) {
+      console.warn('Direct Google GTX client call failed:', gtxErr);
+    }
+
+    // 5. Direct MyMemory Translation API fallback
+    try {
+      const mmRes = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=en|zh-CN`
+      );
+      if (mmRes.ok) {
+        const mmData = await mmRes.json();
+        const trans = mmData?.responseData?.translatedText?.trim();
+        if (trans && /[\u4e00-\u9fa5]/.test(trans)) {
+          return { translation: trans, source: 'mymemory_client' };
+        }
+      }
+    } catch (mmErr) {
+      console.warn('MyMemory client call failed:', mmErr);
+    }
+
+    return { translation: '', source: 'failed' };
   }
 
   public async translateBatch(
@@ -180,7 +229,7 @@ class OnDeviceTranslationManager {
     const total = texts.length;
     let completed = 0;
 
-    // If on-device translator is active, translate locally with near-zero latency
+    // If on-device hardware translator is active, translate locally with near-zero latency
     const translator = await this.getTranslator();
     if (translator && typeof translator.translate === 'function') {
       const results: string[] = [];
@@ -190,9 +239,15 @@ class OnDeviceTranslationManager {
         } else {
           try {
             const translated = await translator.translate(text);
-            results.push(translated);
+            if (translated && typeof translated === 'string' && /[\u4e00-\u9fa5]/.test(translated)) {
+              results.push(translated);
+            } else {
+              const cloud = await this.translateText(text);
+              results.push(cloud.translation);
+            }
           } catch {
-            results.push(text);
+            const cloud = await this.translateText(text);
+            results.push(cloud.translation);
           }
         }
         completed++;
@@ -201,44 +256,29 @@ class OnDeviceTranslationManager {
       return results;
     }
 
-    // Otherwise, fast chunked cloud translation (batch of 8 items concurrently)
+    // Fast concurrent translation in batches of 4
     const results: string[] = new Array(total).fill('');
-    const batchSize = 8;
+    const batchSize = 4;
 
     for (let i = 0; i < texts.length; i += batchSize) {
       const chunk = texts.slice(i, i + batchSize);
-      try {
-        const res = await fetch('/api/translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texts: chunk }),
-        });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.translations)) {
-            data.translations.forEach((t: string, idx: number) => {
-              results[i + idx] = t;
-            });
+      // Translate chunk items concurrently with translateText (which has 5-tier fallback)
+      await Promise.all(
+        chunk.map(async (itemText, chunkIdx) => {
+          const globalIdx = i + chunkIdx;
+          if (!itemText || !itemText.trim()) {
+            results[globalIdx] = '';
+            return;
           }
-        } else {
-          // Individual fallback for this chunk
-          const singleResults = await Promise.all(
-            chunk.map((item) => (item.trim() ? this.translateText(item).then((r) => r.translation) : ''))
-          );
-          singleResults.forEach((t, idx) => {
-            results[i + idx] = t;
-          });
-        }
-      } catch {
-        // Fallback
-        const singleResults = await Promise.all(
-          chunk.map((item) => (item.trim() ? this.translateText(item).then((r) => r.translation) : ''))
-        );
-        singleResults.forEach((t, idx) => {
-          results[i + idx] = t;
-        });
-      }
+          try {
+            const res = await this.translateText(itemText);
+            results[globalIdx] = res.translation;
+          } catch {
+            results[globalIdx] = '';
+          }
+        })
+      );
 
       completed += chunk.length;
       if (onProgress) onProgress(Math.min(completed, total), total);

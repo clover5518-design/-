@@ -3,6 +3,8 @@ export interface Paragraph {
   original: string;
   translation?: string;
   translating?: boolean;
+  imageUrl?: string;
+  isOcrProcessing?: boolean;
 }
 
 export interface Chapter {
@@ -16,6 +18,7 @@ export interface Book {
   title: string;
   author: string;
   format: 'pdf' | 'epub' | 'txt';
+  isScannedPdf?: boolean;
   coverUrl?: string;
   chapters: Chapter[];
   currentChapterIndex: number;
@@ -51,12 +54,25 @@ export interface ReadingSettings {
   autoScroll: boolean;
 }
 
+export interface ChineseVoicePreset {
+  id: string;
+  name: string;
+  subtitle: string;
+  tag: string;
+  gender: 'female' | 'male' | 'special';
+  pitch: number;
+  rate: number;
+  lang: string;
+  sampleText: string;
+}
+
 export interface TtsSettings {
   ttsMode: TtsMode;
   rate: number; // 0.7 to 2.0
   pitch: number; // 0.8 to 1.2
   voiceZh?: string;
   voiceEn?: string;
+  chineseVoiceId?: string;
 }
 
 export interface Bookmark {

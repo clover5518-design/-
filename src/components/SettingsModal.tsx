@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   Type,
@@ -10,8 +10,11 @@ import {
   Sun,
   Moon,
   Smartphone,
+  Languages,
+  Volume1,
 } from 'lucide-react';
 import { FontFamilyType, LayoutMode, MarginType, ReaderTheme, ReadingSettings } from '../types/book';
+import { ttsService, CHINESE_VOICE_PRESETS } from '../services/ttsService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -66,7 +69,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   isChineseBook,
   onOpenApkModal,
 }) => {
+  const [currentVoiceId, setCurrentVoiceId] = useState<string>(
+    ttsService.getState().chineseVoiceId || 'taiwan-female'
+  );
+  const [previewingVoiceId, setPreviewingVoiceId] = useState<string | null>(null);
+
   if (!isOpen) return null;
+
+  const handleSelectVoice = (id: string) => {
+    setCurrentVoiceId(id);
+    ttsService.setChineseVoice(id);
+  };
+
+  const handleAudition = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setPreviewingVoiceId(id);
+    ttsService.previewVoice(id);
+    setTimeout(() => {
+      setPreviewingVoiceId((cur) => (cur === id ? null : cur));
+    }, 4500);
+  };
 
   return (
     <div
@@ -302,6 +324,76 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             </div>
           )}
+
+          {/* TTS Voice Selection Section */}
+          <div className="space-y-3 pt-2 border-t border-stone-800">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-stone-400 tracking-wider uppercase flex items-center gap-1.5">
+                <Languages className="w-3.5 h-3.5 text-amber-400" />
+                <span>朗读语音音色选择</span>
+              </label>
+              <span className="text-[10px] bg-rose-500/20 text-rose-300 font-semibold px-2 py-0.5 rounded-full border border-rose-500/30">
+                新增台湾普通话 & 柔和轻语
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-1">
+              {CHINESE_VOICE_PRESETS.map((preset) => {
+                const isSelected = currentVoiceId === preset.id;
+                const isAuditioning = previewingVoiceId === preset.id;
+
+                return (
+                  <div
+                    key={preset.id}
+                    onClick={() => handleSelectVoice(preset.id)}
+                    className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-500/15 border-amber-400/70 shadow-sm shadow-amber-500/10'
+                        : 'bg-stone-950/40 border-stone-800 hover:border-stone-700 hover:bg-stone-800/40'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-stone-200'}`}>
+                          {preset.name.split('·')[0].trim()}
+                        </span>
+                        <span
+                          className={`text-[9px] px-1.5 py-0.2 rounded font-medium ${
+                            preset.tag.includes('台湾')
+                              ? 'bg-rose-500/20 text-rose-300'
+                              : preset.tag.includes('助眠')
+                              ? 'bg-cyan-500/20 text-cyan-300'
+                              : preset.tag.includes('治愈')
+                              ? 'bg-emerald-500/20 text-emerald-300'
+                              : 'bg-amber-500/20 text-amber-300'
+                          }`}
+                        >
+                          {preset.tag}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-stone-400 truncate mt-0.5">
+                        {preset.subtitle}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => handleAudition(e, preset.id)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 shrink-0 transition ${
+                        isAuditioning
+                          ? 'bg-amber-500 text-stone-950 animate-pulse'
+                          : 'bg-stone-800 text-stone-300 hover:text-stone-100 hover:bg-stone-700'
+                      }`}
+                      title="试听发音"
+                    >
+                      <Volume1 className={`w-3 h-3 ${isAuditioning ? 'animate-bounce' : ''}`} />
+                      <span>{isAuditioning ? '试听中' : '试听'}</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Mobile APK Program Entry */}
           {onOpenApkModal && (

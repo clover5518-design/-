@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Book,
   Bookmark,
@@ -18,9 +18,13 @@ import {
 import { authService } from './services/authService';
 import { notesService } from './services/notesService';
 import {
+  translateChapterProgressive,
   translateParagraphsBatch,
   translateSingleText,
+  isChineseBookContent,
+  containsChinese,
 } from './services/translateService';
+import { performPageOcr } from './services/pdfParser';
 import { ttsService } from './services/ttsService';
 
 import { MobileShell } from './components/MobileShell';
@@ -71,6 +75,8 @@ export default function App() {
 
   const [isTranslatingChapter, setIsTranslatingChapter] = useState(false);
   const [translateProgress, setTranslateProgress] = useState<{ done: number; total: number } | null>(null);
+  const translationAbortControllerRef = useRef<AbortController | null>(null);
+  const saveDebounceTimerRef = useRef<any>(null);
   const [ttsPlaying, setTtsPlaying] = useState(false);
 
   // Initialize books & settings
@@ -82,14 +88,18 @@ export default function App() {
 
       // Load books from IndexedDB
       let loadedBooks = await getAllBooks();
-      if (loadedBooks.length === 0) {
-        // Seed sample classic books
+      const hasFeaturedSample = loadedBooks.some((b) => b.id === 'book_broken_china' && b.coverUrl);
+      if (loadedBooks.length === 0 || !hasFeaturedSample) {
+        // Seed sample books with covers
         for (const sb of SAMPLE_BOOKS) {
           await saveBook(sb);
         }
-        loadedBooks = SAMPLE_BOOKS;
+        loadedBooks = await getAllBooks();
       }
-      setBooks(loadedBooks);
+      const sampleIds = new Set(SAMPLE_BOOKS.map((s) => s.id));
+      const samplesInDb = SAMPLE_BOOKS.filter((s) => loadedBooks.some((b) => b.id === s.id));
+      const customBooks = loadedBooks.filter((b) => !sampleIds.has(b.id));
+      setBooks([...samplesInDb, ...customBooks]);
     }
     init();
   }, []);
@@ -178,7 +188,10 @@ export default function App() {
       await saveBook(sb);
     }
     const all = await getAllBooks();
-    setBooks(all);
+    const sampleIds = new Set(SAMPLE_BOOKS.map((s) => s.id));
+    const samplesInDb = SAMPLE_BOOKS.filter((s) => all.some((b) => b.id === s.id));
+    const customBooks = all.filter((b) => !sampleIds.has(b.id));
+    setBooks([...samplesInDb, ...customBooks]);
   };
 
   // Update Settings
@@ -191,13 +204,21 @@ export default function App() {
     }
   };
 
-  // Switch chapters
+  // Switch chapters (safely pauses ongoing translation if active)
   const handleSelectChapter = (chapIdx: number) => {
     if (!currentBook) return;
+    if (isTranslatingChapter) {
+      translationAbortControllerRef.current?.abort();
+      setIsTranslatingChapter(false);
+      translationAbortControllerRef.current = null;
+    }
     setCurrentChapterIndex(chapIdx);
     setCurrentParagraphIndex(0);
     saveProgress(currentBook, chapIdx, 0);
     ttsService.stop();
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   // Single paragraph translation
@@ -222,7 +243,8 @@ export default function App() {
 
     try {
       const translation = await translateSingleText(targetPara.original, currentChapter.title);
-      updatedParas[index] = { ...targetPara, translation, translating: false };
+      const validChinese = translation && containsChinese(translation) ? translation.trim() : (targetPara.translation || '');
+      updatedParas[index] = { ...targetPara, translation: validChinese, translating: false };
       const finalizedBook = {
         ...currentBook,
         chapters: currentBook.chapters.map((c, i) =>
@@ -230,7 +252,7 @@ export default function App() {
         ),
       };
       setCurrentBook(finalizedBook);
-      saveBook(finalizedBook);
+      await saveBook(finalizedBook);
     } catch (e) {
       updatedParas[index] = { ...targetPara, translating: false };
       setCurrentBook({
@@ -242,36 +264,163 @@ export default function App() {
     }
   };
 
-  // Batch translate entire current chapter (utilizing Android 16/S24 on-device acceleration)
+  // Progressive real-time chapter translation:
+  // 1. Chinese translations are saved into book storage permanently; no re-translation needed when re-reading.
+  // 2. If interrupted, keeps already translated parts; clicking resumes from unfinished paragraphs.
+  // 3. Each translated paragraph is displayed immediately on screen, not at the end of the chapter.
+  // 4. Stays alive in background when switching to other apps without interruption.
   const handleTranslateCurrentChapter = async () => {
-    if (!currentBook || isTranslatingChapter) return;
+    if (!currentBook) return;
     const currentChapter = currentBook.chapters[currentChapterIndex];
-    if (!currentChapter) return;
+    if (!currentChapter || currentChapter.paragraphs.length === 0) return;
 
+    // If currently running, clicking acts as Pause / Stop
+    if (isTranslatingChapter) {
+      translationAbortControllerRef.current?.abort();
+      setIsTranslatingChapter(false);
+      translationAbortControllerRef.current = null;
+      return;
+    }
+
+    const untranslated = currentChapter.paragraphs.filter(
+      (p) => !p.translation || !containsChinese(p.translation)
+    );
+    const totalParas = currentChapter.paragraphs.length;
+    const alreadyDone = totalParas - untranslated.length;
+    const isAllDone = untranslated.length === 0;
+
+    const controller = new AbortController();
+    translationAbortControllerRef.current = controller;
     setIsTranslatingChapter(true);
-    setTranslateProgress({ done: 0, total: currentChapter.paragraphs.length });
+    setTranslateProgress({ done: alreadyDone, total: totalParas });
 
     try {
-      const translatedParas = await translateParagraphsBatch(
-        currentChapter.paragraphs,
-        (done, total) => {
-          setTranslateProgress({ done, total });
-        }
-      );
-      const updatedBook: Book = {
-        ...currentBook,
-        chapters: currentBook.chapters.map((c, i) =>
-          i === currentChapterIndex ? { ...c, paragraphs: translatedParas } : c
-        ),
-      };
-      setCurrentBook(updatedBook);
-      await saveBook(updatedBook);
-    } catch (err) {
-      console.error('Batch translate error:', err);
+      const finalParas = await translateChapterProgressive(currentChapter.paragraphs, {
+        context: currentChapter.title,
+        signal: controller.signal,
+        forceAll: isAllDone, // If 100% done, user clicked to refresh all; otherwise resume from unfinished
+        onParagraphStart: (paraId, idx) => {
+          setCurrentBook((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              chapters: prev.chapters.map((c, i) =>
+                i === currentChapterIndex
+                  ? {
+                      ...c,
+                      paragraphs: c.paragraphs.map((p, pIdx) =>
+                        pIdx === idx || (paraId && p.id === paraId)
+                          ? { ...p, translating: true }
+                          : p
+                      ),
+                    }
+                  : c
+              ),
+            };
+          });
+        },
+        onParagraphDone: (paraId, translation, idx, doneCount, totalCount) => {
+          // Immediately display Chinese translation under the English paragraph and persist to storage
+          setCurrentBook((prev) => {
+            if (!prev) return prev;
+            const updated: Book = {
+              ...prev,
+              chapters: prev.chapters.map((c, i) =>
+                i === currentChapterIndex
+                  ? {
+                      ...c,
+                      paragraphs: c.paragraphs.map((p, pIdx) =>
+                        pIdx === idx || (paraId && p.id === paraId)
+                          ? { ...p, translation: translation || p.translation, translating: false }
+                          : p
+                      ),
+                    }
+                  : c
+              ),
+            };
+            if (saveDebounceTimerRef.current) {
+              clearTimeout(saveDebounceTimerRef.current);
+            }
+            saveDebounceTimerRef.current = setTimeout(() => {
+              saveBook(updated).catch(() => {});
+            }, 800);
+            return updated;
+          });
+          setTranslateProgress({ done: doneCount, total: totalCount });
+        },
+        onProgress: (doneCount, totalCount) => {
+          setTranslateProgress({ done: doneCount, total: totalCount });
+        },
+      });
+      if (finalParas && finalParas.length > 0) {
+        setCurrentBook((prev) => {
+          if (!prev) return prev;
+          const updated: Book = {
+            ...prev,
+            chapters: prev.chapters.map((c, i) =>
+              i === currentChapterIndex ? { ...c, paragraphs: finalParas } : c
+            ),
+          };
+          saveBook(updated).catch(() => {});
+          return updated;
+        });
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        console.error('Progressive translate error:', err);
+      }
     } finally {
       setIsTranslatingChapter(false);
-      setTimeout(() => setTranslateProgress(null), 1500);
+      translationAbortControllerRef.current = null;
+      setTimeout(() => setTranslateProgress(null), 3500);
     }
+  };
+
+  // Handle OCR text extraction for scanned PDF page
+  const handleOcrParagraph = async (index: number) => {
+    if (!currentBook) return;
+    const chapter = currentBook.chapters[currentChapterIndex];
+    if (!chapter) return;
+    const para = chapter.paragraphs[index];
+    if (!para || !para.imageUrl) return;
+
+    const updatedParagraphs = [...chapter.paragraphs];
+    updatedParagraphs[index] = { ...para, isOcrProcessing: true };
+    const updatedChapters = [...currentBook.chapters];
+    updatedChapters[currentChapterIndex] = { ...chapter, paragraphs: updatedParagraphs };
+    const tempBook: Book = { ...currentBook, chapters: updatedChapters };
+    setCurrentBook(tempBook);
+
+    try {
+      const ocrText = await performPageOcr(para.imageUrl);
+      if (ocrText && ocrText.trim()) {
+        updatedParagraphs[index] = {
+          ...para,
+          original: ocrText.trim(),
+          isOcrProcessing: false,
+        };
+      } else {
+        updatedParagraphs[index] = {
+          ...para,
+          isOcrProcessing: false,
+        };
+      }
+    } catch (err) {
+      console.error('OCR recognition error:', err);
+      updatedParagraphs[index] = {
+        ...para,
+        isOcrProcessing: false,
+      };
+    }
+
+    const finalBook: Book = {
+      ...currentBook,
+      chapters: currentBook.chapters.map((c, i) =>
+        i === currentChapterIndex ? { ...c, paragraphs: updatedParagraphs } : c
+      ),
+    };
+    setCurrentBook(finalBook);
+    await saveBook(finalBook);
   };
 
   // Play from specific paragraph
@@ -329,10 +478,7 @@ export default function App() {
   const isCurrentBookChinese = React.useMemo(() => {
     if (!currentBook) return false;
     const chap = currentBook.chapters[currentChapterIndex];
-    if (!chap || chap.paragraphs.length === 0) return false;
-    const sample = chap.paragraphs.slice(0, 15).map((p) => p.original).join('');
-    const chineseChars = sample.match(/[\u4e00-\u9fa5]/g) || [];
-    return chineseChars.length >= 6 || (chineseChars.length / (sample.replace(/\s+/g, '').length || 1) > 0.12);
+    return isChineseBookContent(currentBook.title, chap?.paragraphs || []);
   }, [currentBook, currentChapterIndex]);
 
   return (
@@ -396,6 +542,7 @@ export default function App() {
             onTranslateChapter={handleTranslateCurrentChapter}
             isTranslatingChapter={isTranslatingChapter}
             translateProgress={translateProgress}
+            onOcrParagraph={handleOcrParagraph}
             onPlayFromParagraph={handlePlayFromParagraph}
             onToggleBookmark={(idx, excerpt) => handleToggleBookmark(idx, excerpt)}
             onAddNote={(idx, paragraph) => setAddNoteData({ paragraph, index: idx })}
@@ -419,7 +566,8 @@ export default function App() {
             currentParagraphIndex={currentParagraphIndex}
             bookTitle={currentBook.title}
             chapterTitle={currentChapter?.title || '正文'}
-            onParagraphChange={(idx) => {
+            isChineseBook={isCurrentBookChinese}
+            onParagraphChange={(idx: number) => {
               setCurrentParagraphIndex(idx);
               saveProgress(currentBook, currentChapterIndex, idx);
             }}
